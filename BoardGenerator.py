@@ -75,9 +75,9 @@ def exploreNeighbors():
     inspect(tileDiag4)
     if len(queue) != 0:
         exploreNeighbors()
+
 #removed while True and break for testing
 #while True:
-
 row = int(input("Row:"))
 column = int(input("Column:"))
 if grid[row][column] == 1:
@@ -150,6 +150,41 @@ for x in range(height):
     for y in range(length):
         if userGrid[x][y] != 0 and userGrid[x][y] != 9:
             markFlag(Tile(x,y))
+
 print("\n")
 for row in flagGrid:
     print(row)    
+
+def checkCoverAndFlag(covered, tile):
+    if isOnBoard(tile) == True:
+        if userGrid[tile.row][tile.column] == 9 and flagGrid[tile.row][tile.column] == 0:
+            covered.append(tile)
+    
+def checkFlag(tile):
+    covered = []
+    tileUp = Tile(tile.row - 1, tile.column)
+    checkCoverAndFlag(covered, tileUp)
+    tileDown = Tile(tile.row + 1, tile.column)
+    checkCoverAndFlag(covered, tileDown)
+    tileLeft = Tile(tile.row, tile.column - 1)
+    checkCoverAndFlag(covered, tileLeft)
+    tileRight = Tile(tile.row, tile.column + 1)
+    checkCoverAndFlag(covered, tileRight)
+    tileDiag1 = Tile(tile.row - 1, tile.column -1)
+    checkCoverAndFlag(covered, tileDiag1)
+    tileDiag2 = Tile(tile.row + 1, tile.column +1)
+    checkCoverAndFlag(covered, tileDiag2)
+    tileDiag3 = Tile(tile.row + 1, tile.column - 1)
+    checkCoverAndFlag(covered, tileDiag3)
+    tileDiag4 = Tile(tile.row - 1, tile.column + 1)
+    checkCoverAndFlag(covered, tileDiag4)
+    flagCount = flagGrid[tileUp.row][tileUp.column] + flagGrid[tileDown.row][tileDown.column] + flagGrid[tileLeft.row][tileLeft.column] + flagGrid[tileRight.row][tileRight.column] + flagGrid[tileDiag1.row][tileDiag1.column] + flagGrid[tileDiag2.row][tileDiag2.column] + flagGrid[tileDiag3.row][tileDiag3.column] + flagGrid[tileDiag4.row][tileDiag4.column]
+    if flagCount == userGrid[tile.row][tile.column]:
+        print(covered)
+    else:
+        print("No clickable tiles.")
+
+row2 = int(input("Row:"))
+column2 = int(input("Column:"))
+checkFlag(Tile(row2, column2))
+        
