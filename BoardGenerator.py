@@ -43,10 +43,12 @@ class Tile:
 
 queue = deque()
 
+def isOnBoard(tile):
+    return tile.row >= 0 and tile.row < height and tile.column >= 0 and tile.column < length
+
 def inspect(tile):
     # check if the tile is on the board
-    isOnBoard = tile.row >= 0 and tile.row < height and tile.column >= 0 and tile.column < length
-    if isOnBoard == True:
+    if isOnBoard(tile) == True:
         hasNotBeenInspected = userGrid[tile.row][tile.column] == 9
         if hasNotBeenInspected:
             userGrid[tile.row][tile.column] = neighborMine[tile.row][tile.column]
@@ -73,21 +75,22 @@ def exploreNeighbors():
     inspect(tileDiag4)
     if len(queue) != 0:
         exploreNeighbors()
+#removed while True and break for testing
+#while True:
 
-while True:
-    row = int(input("Row:"))
-    column = int(input("Column:"))
-    if grid[row][column] == 1:
-        print("mine hit")
-        break
-    else:
-        userGrid[row][column] = neighborMine[row][column]
-        if neighborMine[row][column] == 0:
-            queue.append(Tile(row, column))
-            exploreNeighbors()
-    for row in userGrid:
-        print(row)
-    print("This round finishs.")
+row = int(input("Row:"))
+column = int(input("Column:"))
+if grid[row][column] == 1:
+    print("mine hit")
+    #break
+else:
+    userGrid[row][column] = neighborMine[row][column]
+    if neighborMine[row][column] == 0:
+        queue.append(Tile(row, column))
+        exploreNeighbors()
+for row in userGrid:
+    print(row)
+print("This round finishs.")
 
 
 
@@ -106,4 +109,47 @@ for row in userGrid:
 # if neighboring mines =  neighboring mines amount uncover rest of mines
 #pattern recognition?
 
+# Return a Tile to click next
 
+
+
+
+flagGrid = [[0 for i in range(length)] for j in range(height)]
+
+# check if a tile is covered and add them to a list
+def checkCover(covered, tile):
+    if isOnBoard(tile) == True:
+        if userGrid[tile.row][tile.column] == 9:
+            covered.append(tile)
+
+def markFlag(tile):
+    covered = []
+    tileUp = Tile(tile.row - 1, tile.column)
+    checkCover(covered, tileUp)
+    tileDown = Tile(tile.row + 1, tile.column)
+    checkCover(covered, tileDown)
+    tileLeft = Tile(tile.row, tile.column - 1)
+    checkCover(covered, tileLeft)
+    tileRight = Tile(tile.row, tile.column + 1)
+    checkCover(covered, tileRight)
+    tileDiag1 = Tile(tile.row - 1, tile.column -1)
+    checkCover(covered, tileDiag1)
+    tileDiag2 = Tile(tile.row + 1, tile.column +1)
+    checkCover(covered, tileDiag2)
+    tileDiag3 = Tile(tile.row + 1, tile.column - 1)
+    checkCover(covered, tileDiag3)
+    tileDiag4 = Tile(tile.row - 1, tile.column + 1)
+    checkCover(covered, tileDiag4)
+    #if the amount covered neighboring mines is equal to the displayed number on the tile,
+    #all covered tiles are mines, so we flag them on a separate register.
+    if userGrid[tile.row][tile.column] == len(covered):
+        for t in covered:
+            flagGrid[t.row][t.column] = 1
+
+for x in range(height):
+    for y in range(length):
+        if userGrid[x][y] != 0 and userGrid[x][y] != 9:
+            markFlag(Tile(x,y))
+print("\n")
+for row in flagGrid:
+    print(row)    
