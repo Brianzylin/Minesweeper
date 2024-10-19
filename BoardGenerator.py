@@ -1,6 +1,7 @@
 import random
 from collections import deque
 
+
 length = 9
 height = 9
 mines = 10
@@ -26,15 +27,15 @@ for i in range(height):
     for j in range(length):
         neighborMine[i][j] = mineCountGrid[i + 1][j + 2] + mineCountGrid[i + 2][j + 2] + mineCountGrid[i + 2][j + 1] + mineCountGrid[i + 2][j] + mineCountGrid[i + 1][j] + mineCountGrid[i][j] + mineCountGrid[i][j + 1] + mineCountGrid[i][j + 2]
 
+def printMatrix(matrix):
+    for row in matrix:
+        print(row)
+    print("\n")
 #print matrix
-for row in grid:
-    print(row)
-print("\n")
+printMatrix(grid)
 
 #print matrix
-for row in neighborMine:
-    print(row)
-print("\n")
+printMatrix(neighborMine)
 
 class Tile:
   def __init__(self, row, column):
@@ -76,29 +77,22 @@ def exploreNeighbors():
     if len(queue) != 0:
         exploreNeighbors()
 
-#removed while True and break for testing
-#while True:
-row = int(input("Row:"))
-column = int(input("Column:"))
-if grid[row][column] == 1:
-    print("mine hit")
-    #break
-else:
-    userGrid[row][column] = neighborMine[row][column]
-    if neighborMine[row][column] == 0:
-        queue.append(Tile(row, column))
-        exploreNeighbors()
-for row in userGrid:
-    print(row)
-print("This round finishs.")
 
-
-
-
+def checkTile(tile):
+    print("Checking ", tile.row, " ", tile.column)
+    if grid[tile.row][tile.column] == 1:
+        print("mine hit")
+        return False
+    else:
+        userGrid[tile.row][tile.column] = neighborMine[tile.row][tile.column]
+        if neighborMine[tile.row][tile.column] == 0:
+            queue.append(Tile(row, column))
+            exploreNeighbors()
+        print("This round finishs.")
+        return True
 
 #print user input
-for row in userGrid:
-    print(row)
+printMatrix(userGrid)
 
 
 
@@ -146,45 +140,75 @@ def markFlag(tile):
         for t in covered:
             flagGrid[t.row][t.column] = 1
 
-for x in range(height):
-    for y in range(length):
-        if userGrid[x][y] != 0 and userGrid[x][y] != 9:
-            markFlag(Tile(x,y))
 
-print("\n")
-for row in flagGrid:
-    print(row)    
 
 def checkCoverAndFlag(covered, tile):
     if isOnBoard(tile) == True:
         if userGrid[tile.row][tile.column] == 9 and flagGrid[tile.row][tile.column] == 0:
             covered.append(tile)
-    
+
+def addToCount(tile):
+    if isOnBoard(tile) == True:
+        return flagGrid[tile.row][tile.column]
+    else:
+        return 0
+
 def checkFlag(tile):
+    count = 0
     covered = []
     tileUp = Tile(tile.row - 1, tile.column)
     checkCoverAndFlag(covered, tileUp)
+    count += addToCount(tileUp)
     tileDown = Tile(tile.row + 1, tile.column)
     checkCoverAndFlag(covered, tileDown)
+    count += addToCount(tileDown)
     tileLeft = Tile(tile.row, tile.column - 1)
     checkCoverAndFlag(covered, tileLeft)
+    count += addToCount(tileLeft)
     tileRight = Tile(tile.row, tile.column + 1)
     checkCoverAndFlag(covered, tileRight)
+    count += addToCount(tileRight)
     tileDiag1 = Tile(tile.row - 1, tile.column -1)
     checkCoverAndFlag(covered, tileDiag1)
+    count += addToCount(tileDiag1)
     tileDiag2 = Tile(tile.row + 1, tile.column +1)
     checkCoverAndFlag(covered, tileDiag2)
+    count += addToCount(tileDiag2)
     tileDiag3 = Tile(tile.row + 1, tile.column - 1)
     checkCoverAndFlag(covered, tileDiag3)
+    count += addToCount(tileDiag3)
     tileDiag4 = Tile(tile.row - 1, tile.column + 1)
     checkCoverAndFlag(covered, tileDiag4)
-    flagCount = flagGrid[tileUp.row][tileUp.column] + flagGrid[tileDown.row][tileDown.column] + flagGrid[tileLeft.row][tileLeft.column] + flagGrid[tileRight.row][tileRight.column] + flagGrid[tileDiag1.row][tileDiag1.column] + flagGrid[tileDiag2.row][tileDiag2.column] + flagGrid[tileDiag3.row][tileDiag3.column] + flagGrid[tileDiag4.row][tileDiag4.column]
-    if flagCount == userGrid[tile.row][tile.column]:
-        print(covered)
+    count += addToCount(tileDiag4)
+    if count == userGrid[tile.row][tile.column]:
+        return covered
     else:
-        print("No clickable tiles.")
+        return []
 
-row2 = int(input("Row:"))
-column2 = int(input("Column:"))
-checkFlag(Tile(row2, column2))
-        
+# Progream starts
+#First tile uncovered
+row = int(input("Row:"))
+column = int(input("Column:"))
+
+nextTile = Tile(row,column)
+while checkTile(nextTile) == True:
+    #mark neighboring flags for every tile
+    for x in range(height):
+        for y in range(height):
+            if userGrid[x][y] != 0 and userGrid[x][y] != 9:
+                markFlag(Tile(x,y))
+    allClickableTiles = []
+    for x in range(height):
+        for y in range(height):
+            if userGrid[x][y] != 0 and userGrid[x][y] != 9:
+                allClickableTiles.extend(checkFlag(Tile(x,y)))
+    if len(allClickableTiles) > 0:
+        nextTile = allClickableTiles.pop()
+    else:
+        print("No more tiles to uncover")
+        break
+
+printMatrix(userGrid)
+#compare mines to flags
+printMatrix(flagGrid)
+printMatrix(grid)
