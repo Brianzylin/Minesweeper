@@ -1,4 +1,6 @@
 import random
+import copy
+
 width = 9
 height = 9
 mines = 10
@@ -9,7 +11,7 @@ class Tile:
         self.col = col
         self.is_mine = False  # Initially not a mine
         self.is_revealed = False
-        #self.is_flagged = False
+        self.is_flagged = False
         self.neighboring_mines = 0  # Number of neighboring mines
     
     def __repr__(self):
@@ -18,7 +20,8 @@ class Tile:
         r = str(int(self.is_revealed)) 
         s = str(self.row)
         u = str(self.col)
-        return "({}, {}, {}, {}, {})".format(m, n, r, s, u)
+        f = str(int(self.is_flagged))
+        return "({}, {}, {}, {}, {}, {})".format(s, u, m, n, r, f)
     
     def __eq__(self, other): 
         if not isinstance(other, Tile):
@@ -69,9 +72,12 @@ def neighbors(tile):
     count += checkMine(tile.row - 1, tile.col - 1)
     tile.neighboring_mines = count
 
-for i in range (0,height):
-    for j in range(0,width):
-        neighbors(grid[i][j])
+def calNeighbors(grid):
+    for r in grid:  
+        for t in r: 
+            neighbors(t)
+
+calNeighbors(grid)
 
 def printMatrix(matrix):
     for row in matrix:
@@ -130,6 +136,35 @@ constraint = getConstraints(grid)
 print(constraint)
 
 printMatrix(grid)
+
+def simulation(constraint, bitmask):
+    testPlan = copy.deepcopy(constraint)
+    for i in range(0, len(testPlan) - 1):
+        if (bitmask & 1 == 1):
+            testPlan[i].is_flagged = True
+        bitmask = bitmask >> 1
+    return testPlan
+
+
+def backTesting(testPlan):
+    testGrid = copy.deepcopy(grid)
+    for t in testPlan:
+        testGrid[t.row][t.col].is_mine = t.is_flagged
+    calNeighbors(testGrid)
+    for testRow in testGrid:  
+        for t in testRow: 
+            if t.is_revealed == True and t.neigboring_mines != grid[t.row][t.col].neighboring_mines:
+                return False
+    return True
+
+
+def bruteForce(constraint):
+    for j in range(0, 2**(len(constraint)) - 1):
+        successList = []
+        testPlan = simulation(constraint, j)
+        backTest = backTesting(testPlan)
+        if backTest == True:
+            successList.add(testPlan)
 
 
 
