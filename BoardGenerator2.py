@@ -16,8 +16,18 @@ class Tile:
         m = str(int(self.is_mine)) 
         n = str(self.neighboring_mines)
         r = str(int(self.is_revealed)) 
-        return "({}, {}, {})".format(m, n, r)
-
+        s = str(self.row)
+        u = str(self.col)
+        return "({}, {}, {}, {}, {})".format(m, n, r, s, u)
+    
+    def __eq__(self, other): 
+        if not isinstance(other, Tile):
+            # don't attempt to compare against unrelated types
+            return NotImplemented
+        return self.row == other.row and self.col == other.col
+    
+    def __hash__(self):
+        return hash((self.row, self.col))
 
 grid = [[Tile(row, col) for col in range(width)] for row in range(height)]
 
@@ -69,9 +79,61 @@ def printMatrix(matrix):
     print("\n")
 
 
+# Below is the Solver code, wihc simulate tile
+grid[0][0].is_revealed = True
+
+
+def revealOneTile(row, col):
+    currentTile = getTile(row, col)
+    if (currentTile != outofGridTile and currentTile.is_revealed == False):
+        currentTile.is_revealed = True
+ 
+def revealOnZero(tile):
+    if tile.is_revealed == True and tile.neighboring_mines == 0:
+        revealOneTile(tile.row + 1, tile.col + 1)
+        revealOneTile(tile.row + 1, tile.col)
+        revealOneTile(tile.row + 1, tile.col - 1)
+        revealOneTile(tile.row, tile.col - 1)
+        revealOneTile(tile.row - 1, tile.col - 1)
+        revealOneTile(tile.row - 1, tile.col)
+        revealOneTile(tile.row - 1, tile.col + 1)
+        revealOneTile(tile.row, tile.col + 1)
+
+def checkUnrevealed(row, col, constraint):
+    currentTile = getTile(row, col)
+    if currentTile != outofGridTile and currentTile.is_revealed == False:
+        constraint.add(currentTile)
+
+def getUnrevealedNeighbors(tile, constraint):
+    checkUnrevealed(tile.row + 1, tile.col + 1, constraint)
+    checkUnrevealed(tile.row + 1, tile.col, constraint)
+    checkUnrevealed(tile.row + 1, tile.col - 1, constraint)
+    checkUnrevealed(tile.row, tile.col - 1, constraint)
+    checkUnrevealed(tile.row - 1, tile.col - 1, constraint)
+    checkUnrevealed(tile.row - 1, tile.col, constraint)
+    checkUnrevealed(tile.row - 1, tile.col + 1, constraint)
+    checkUnrevealed(tile.row, tile.col + 1, constraint)
+
+#get neigboring tiles
+def getConstraints(grid):
+    constraint = set()
+    for r in grid:  # Get a row
+        for t in r: # Get a tile
+            if t.is_revealed == True:
+                if t.neighboring_mines == 0:
+                    revealOnZero(t)
+                else:
+                    getUnrevealedNeighbors(t, constraint)
+    return constraint
+
+constraint = getConstraints(grid)
+print(constraint)
+
 printMatrix(grid)
 
 
+
+# add to constraint list
 
 
 
